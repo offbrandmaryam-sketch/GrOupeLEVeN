@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jungle Advocacy: Awareness Grid</title>
+    <!-- Import an organic/playful pixel font -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a1f10;
+            --jungle-green: #1b4d22;
+            --bright-yellow: #ffd700;
+            --leaf-green: #38b000;
+            --text-light: #f4f9f4;
+            --accent-orange: #ff7b00;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Press Start 2P', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: var(--bright-yellow);
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+        }
+
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            border: 4px solid var(--bright-yellow);
+            padding: 20px;
+            border-radius: 12px;
+            background: var(--jungle-green);
+            box-shadow: 0 0 25px rgba(27, 77, 34, 0.6);
+            max-width: 100%;
+        }
+
+        /* Fixed Dimensions Board Layout */
+        .board-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border: 3px solid var(--bright-yellow);
+            background-color: #0d2b16;
+            box-shadow: inset 0 0 15px rgba(56, 176, 0, 0.3);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-template-rows: repeat(10, 40px);
+            width: 100%;
+            height: 100%;
+        }
+
+        .cell {
+            border: 1px solid #133a1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: #386b43;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Vines (Ladders) and Toxic Brambles (Snakes) Visual Styles */
+        .ladder-cell {
+            box-shadow: inset 0 0 8px var(--leaf-green);
+            color: var(--leaf-green);
+            background-color: rgba(56, 176, 0, 0.1);
+        }
+
+        .snake-cell {
+            box-shadow: inset 0 0 8px var(--accent-orange);
+            color: var(--accent-orange);
+            background-color: rgba(255, 123, 0, 0.1);
+        }
+
+        /* Character Tokens styling */
+        .token {
+            width: 18px;
+            height: 18px;
+            position: absolute;
+            transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            z-index: 5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: bold;
+            border: 1px solid white;
+        }
+
+        #human-token {
+            background-color: #ff66cc;
+            box-shadow: 0 0 10px #ff66cc;
+        }
+
+        #cpu-token {
+            background-color: var(--bright-yellow);
+            box-shadow: 0 0 10px var(--bright-yellow);
+            color: #000;
+        }
+
+        /* Control Panel Styles */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .status {
+            font-size: 0.6rem;
+            text-align: center;
+            line-height: 1.4;
+            height: 20px;
+            color: var(--text-light);
+        }
+
+        .dice-display {
+            font-size: 1.5rem;
+            color: var(--bright-yellow);
+            margin: 5px 0;
+        }
+
+        button {
+            background-color: transparent;
+            border: 2px solid var(--bright-yellow);
+            color: var(--bright-yellow);
+            font-family: 'Press Start 2P', monospace;
+            padding: 12px 24px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 4px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--bright-yellow);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--bright-yellow);
+        }
+
+        button:disabled {
+            border-color: #386b43;
+            color: #386b43;
+            cursor: not-allowed;
+        }
+
+        /* Educational Pop-up Overlay */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 31, 16, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: #0d2b16;
+            border: 4px solid var(--bright-yellow);
+            padding: 25px;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 0 25px var(--bright-yellow);
+            border-radius: 8px;
+        }
+
+        .modal-content h3 {
+            font-size: 0.75rem;
+            margin-top: 0;
+            line-height: 1.5;
+        }
+
+        .modal-content p {
+            font-size: 0.55rem;
+            line-height: 1.8;
+            margin: 20px 0;
+            color: #cbd5e1;
+        }
+
+        .modal-ladder h3 { color: var(--leaf-green); text-shadow: 0 0 8px var(--leaf-green); }
+        .modal-snake h3 { color: var(--accent-orange); text-shadow: 0 0 8px var(--accent-orange); }
+    </style>
+</head>
+<body>
+
+    <h1>JUNGLE ADVOCACY GRID</h1>
+
+    <div class="game-wrapper">
+        <!-- Jungle Map Grid -->
+        <div class="board-container">
+            <div class="grid" id="board-grid"></div>
+            <!-- Dynamic tokens -->
+            <div id="human-token" class="token">👧</div>
+            <div id="cpu-token" class="token">🤖</div>
+        </div>
+
+        <!-- Controls panel -->
+        <div class="controls">
+            <div class="status" id="turn-indicator">YOUR TURN (👧)</div>
+            <div class="dice-display" id="dice-result">🎲</div>
+            <button id="roll-btn" onclick="takeHumanTurn()">ROLL DICE</button>
+        </div>
+    </div>
+
+    <!-- Educational Modal Overlay -->
+    <div class="modal" id="info-modal">
+        <div class="modal-content" id="modal-container">
+            <h3 id="modal-title">EVENT</h3>
+            <p id="modal-text">Content info.</p>
+            <button style="font-size:0.6rem; padding:8px 16px;" onclick="closeModal()">CONTINUE</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Map Data (Ladders/Vines and Snakes/Brambles)
+        const tilesData = {
+            14: { end: 32, type: 'ladder', title: "GROWTH: CONSENT LEARNED", msg: "You learned that consent must be enthusiastic and clear. Climb the vine to tile 32." },
+            28: { end: 50, type: 'ladder', title: "GROWTH: SAFE INTERVENTION", msg: "You intervened safely when witnessing boundary violations at a gathering. Climb to tile 50." },
+            62: { end: 81, type: 'ladder', title: "GROWTH: SURVIVOR SUPPORT", msg: "You listened non-judgmentally and guided a friend to counseling resources. Climb to tile 81." },
+            
+            36: { end: 17, type: 'snake', title: "BRAMBLE: MYTH DETECTED", msg: "Victim blaming shifts accountability away from perpetrators. Slide down the toxic brush to tile 17 to unlearn." },
+            57: { end: 23, type: 'snake', title: "BRAMBLE: BOUNDARY BREAK", msg: "Ignoring non-verbal discomfort compromises personal safety and autonomy. Slide down to tile 23." },
+            88: { end: 44, type: 'snake', title: "BRAMBLE: SILENT ZONE", msg: "A lack of community transparency stops accountability. Slide down to tile 44 to strategize." }
+        };
+
+        const boardSize = 100;
+        let positions = { human: 1, cpu: 1 };
+        let activeTurn = 'human'; // 'human' or 'cpu'
+
+        const tileCoordinates = {};
+        let cellOrder = [];
+
+        // Build alternating row directions for standard board game loops
+        for (let row = 9; row >= 0; row--) {
+            let rowCells = [];
+            for (let col = 0; col < 10; col++) {
+                let id = row % 2 === 0 ? (row * 10) + col + 1 : (row * 10) + (9 - col) + 1;
+                rowCells.push({ id: id, row: 9 - row, col: col });
+            }
+            cellOrder.push(...rowCells);
+        }
+        
+        const gridEl = document.getElementById('board-grid');
+        cellOrder.forEach(cellInfo => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.id = `grid-cell-${cellInfo.id}`;
+            cell.innerText = cellInfo.id;
+            
+            if (tilesData[cellInfo.id]) {
+                cell.classList.add(tilesData[cellInfo.id].type === 'ladder' ? 'ladder-cell' : 'snake-cell');
+            }
+            gridEl.appendChild(cell);
+            tileCoordinates[cellInfo.id] = { row: cellInfo.row, col: cellInfo.col };
+        });
+
+        function renderTokens() {
+            // Render Human Token
+            const hCoords = tileCoordinates[positions.human];
+            const hToken = document.getElementById('human-token');
+            hToken.style.top = `${hCoords.row * 40 + 11}px`;
+            let hLeft = hCoords.col * 40 + 4;
+            
+            // Render CPU Token
+            const cCoords = tileCoordinates[positions.cpu];
+            const cToken = document.getElementById('cpu-token');
